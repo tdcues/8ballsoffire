@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>8 Balls of Fire</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: sans-serif;
+            font-size: 16px;
+            padding: 10px;
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            max-width: 100%;
+            margin-bottom: 30px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: auto;
+            min-width: 350px;
+            background-color: white;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #e4ecf7;
+        }
+
+        tr.link-row:hover {
+            background-color: #d7f0ff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>8 Balls of Fire</h1>
+
+    <h2>May 22, 2025 - 8-ball | 8 Balls of Fire vs. I Must Break Cue</h2>
+    <div class="table-wrapper">
+        <table>
+            <tr>
+                <th>Match No.</th>
+                <th>Player</th>
+                <th>Offensive Innings Per Rack</th>
+                <th>Match Points</th>
+            </tr>
+            <tr class="link-row" data-href="8ball/20250522_1_Alexis_vs_Jon_5_22_25.html">
+                <td>1</td><td>Alexis</td><td>8.00 - (SL2)</td><td>3</td>
+            </tr>
+            <tr class="link-row" data-href="8ball/20250522_2_Mike_vs_Will_5_22_25.html">
+                <td>2</td><td>Mike</td><td>4.20 - (SL4)</td><td>0</td>
+            </tr>
+            <tr class="link-row" data-href="20250522_3_Steve_F_vs_Steve_D_5_22_25.html">
+                <td>3</td><td>Steve F</td><td>5.00 - (SL4)</td><td>2</td>
+            </tr>
+            <tr class="link-row" data-href="8ball/20250522_4_Peter_vs_Dennis_5_22_25.html">
+                <td>4</td><td>Peter</td><td>4.25 - (SL4)</td><td>3</td>
+            </tr>
+            <tr class="link-row" data-href="8ball/20250522_5_Tom_D_vs_Darick_A_5_22_25.html">
+                <td>5</td><td>Tom</td><td>3.50 - (SL5)</td><td>2</td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        document.querySelectorAll('tr.link-row').forEach(row => {
+            row.addEventListener('click', () => {
+                const link = row.getAttribute('data-href');
+                if (link) window.location.href = link;
+            });
+        });
+    </script>
+</body>
+</html>
