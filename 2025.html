@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>8 Balls of Fire — Season Stats</title>
+  <style>
+    :root {
+      --bg: #f9f9f9;
+      --text: #222;
+      --muted: #666;
+      --card: #ffffff;
+      --border: #d6d6d6;
+      --thead: #e4ecf7;
+      --hover: #d7f0ff;
+      --accent: #0b6bcb;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 16px; }
+    header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .title { display: flex; align-items: center; gap: 10px; }
+    .title h1 { font-size: 22px; margin: 0; }
+    .season-picker { display: flex; align-items: center; gap: 8px; }
+    select { padding: 6px 10px; font-size: 14px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+
+    .info { font-size: 12px; color: var(--muted); }
+    .section-title { margin: 18px 0 8px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .section-title img { vertical-align: middle; }
+
+    .table-wrapper { overflow-x: auto; max-width: 100%; margin-bottom: 28px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border-bottom: 1px solid var(--border); padding: 8px 12px; text-align: left; white-space: nowrap; }
+    thead th { background: var(--thead); font-weight: 600; }
+    tr.link-row:hover { background: var(--hover); cursor: pointer; }
+
+    .loading { padding: 10px 0; color: var(--muted); font-size: 14px; }
+    .error { color: #a40000; padding: 10px 0; font-size: 14px; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef6ff; color: #09407d; font-size: 12px; border: 1px solid #cfe3ff; }
+  </style>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+    // ==========================
+    // 1) Supabase CONFIG
+    // ==========================
+    // TODO: Replace with your Supabase project values
+    const supabaseUrl = 'https://YOURPROJECT.supabase.co'
+    const supabaseKey = 'YOUR-ANON-PUBLIC-KEY'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    // Fallback seasons to show if we can't discover them from DB
+    const FALLBACK_SEASONS = ['2025spring', '2025summer', '2025fall']
+
+    // Icons — rename these files in your /images folder to match
+    const ICON_8BALL = 'images/8ball-icon.png' // or 'images/8-ball icon.png'
+    const ICON_9BALL = 'images/9ball-icon.png' // or 'images/9-ball icon.png'
+
+    // ==========================
+    // 2) Skill Level Mappings
+    // ==========================
+    const slByPPI = [
+      { sl: 1, min: 0.001, max: 0.825 },
+      { sl: 2, min: 0.826, max: 1.100 },
+      { sl: 3, min: 1.101, max: 1.400 },
+      { sl: 4, min: 1.401, max: 1.725 },
+      { sl: 5, min: 1.726, max: 2.100 },
+      { sl: 6, min: 2.101, max: 2.525 },
+      { sl: 7, min: 2.526, max: 3.000 },
+      { sl: 8, min: 3.001, max: 3.500 },
+      { sl: 9, min: 3.501, max: 75.000 },
+    ]
+
+    const slByInningsPerRack = [
+      { sl: 7, min: 0.00, max: 2.00 },
+      { sl: 6, min: 2.01, max: 3.00 },
+      { sl: 5, min: 3.01, max: 4.00 },
+      { sl: 4, min: 4.01, max: 5.00 },
+      { sl: 3, min: 5.01, max: 7.00 },
+      { sl: 2, min: 7.01, max: 10.00 },
+    ]
+
+    function getSL(value, table) {
+      if (value === null || value === undefined || Number.isNaN(value)) return null
+      for (const range of table) {
+        if (value >= range.min && value <= range.max) return range.sl
+      }
+      return null
+    }
+
+    // ==========================
+    // 3) URL Query Param Helpers
+    // ==========================
+    function getQuerySeason() {
+      const params = new URLSearchParams(window.location.search)
+      return params.get('season')
+    }
+
+    function setQuerySeason(season) {
+      const url = new URL(window.location.href)
+      url.searchParams.set('season', season)
+      window.history.replaceState({}, '', url)
+    }
+
+    // ==========================
+    // 4) Page Bootstrapping
+    // ==========================
+    const seasonSelect = document.getElementById('season-select')
+    const loadingEl = document.getElementById('loading')
+    const errorEl = document.getElementById('error')
+    const matchesContainer = document.getElementById('matches-container')
+
+    let currentSeason = getQuerySeason() || '2025summer'
+
+    seasonSelect.addEventListener('change', async (e) => {
+      currentSeason = e.target.value
+      setQuerySeason(currentSeason)
+      await refreshAll()
+    })
+
+    async function initSeasons() {
+      // Try to discover seasons from DB, fall back if needed
+      try {
+        const { data, error } = await supabase
+          .from('matches')
+          .select('season')
+          .neq('season', null)
+        if (error) throw error
+        const seasons = Array.from(new Set((data || []).map(r => r.season))).sort()
+        const list = seasons.length ? seasons : FALLBACK_SEASONS
+        seasonSelect.innerHTML = ''
+        for (const s of list) {
+          const opt = document.createElement('option')
+          opt.value = s
+          opt.textContent = s
+          seasonSelect.appendChild(opt)
+        }
+        if (!list.includes(currentSeason)) currentSeason = list[0]
+        seasonSelect.value = currentSeason
+      } catch (e) {
+        // fallback
+        seasonSelect.innerHTML = ''
+        for (const s of FALLBACK_SEASONS) {
+          const opt = document.createElement('option')
+          opt.value = s
+          opt.textContent = s
+          seasonSelect.appendChild(opt)
+        }
+        if (!FALLBACK_SEASONS.includes(currentSeason)) currentSeason = FALLBACK_SEASONS[0]
+        seasonSelect.value = currentSeason
+      }
+    }
+
+    async function refreshAll() {
+      errorEl.textContent = ''
+      loadingEl.textContent = 'Loading data…'
+      matchesContainer.innerHTML = ''
+      clearSummaries()
+
+      const { data: matches, error } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('season', currentSeason)
+        .order('week', { ascending: false })
+        .order('game_type', { ascending: true })
+        .order('match_no', { ascending: true })
+
+      loadingEl.textContent = ''
+      if (error) {
+        console.error(error)
+        errorEl.textContent = 'Error loading data: ' + error.message
+        return
+      }
+
+      renderWeeklyTables(matches)
+      renderSummaries(matches)
+    }
+
+    function clearSummaries() {
+      const s8 = document.getElementById('summary-8ball')
+      const s9 = document.getElementById('summary-9ball')
+      s8.innerHTML = ''
+      s9.innerHTML = ''
+      // Recreate headers
+      s8.appendChild(htmlToElement(`<thead><tr>
+        <th>Player</th><th>Avg Played Like SL</th><th>Avg Offensive Innings Per Rack</th><th>Total Match Points</th>
+      </tr></thead><tbody></tbody>`))
+      s9.appendChild(htmlToElement(`<thead><tr>
+        <th>Player</th><th>Avg Played Like SL</th><th>Avg Points Per Inning</th><th>Total Match Points</th>
+      </tr></thead><tbody></tbody>`))
+    }
+
+    function htmlToElement(html) {
+      const template = document.createElement('template')
+      template.innerHTML = html.trim()
+      return template.content
+    }
+
+    // ==========================
+    // 5) Rendering Functions
+    // ==========================
+    function renderWeeklyTables(matches) {
+      // Group by week + game_type + label
+      const grouped = {}
+      for (const m of matches) {
+        const key = `${m.week}__${m.game_type}__${m.label}`
+        if (!grouped[key]) grouped[key] = []
+        grouped[key].push(m)
+      }
+
+      // Keep descending by week
+      const keys = Object.keys(grouped).sort((a,b) => {
+        const wa = parseInt(a.split('__')[0] || '0', 10)
+        const wb = parseInt(b.split('__')[0] || '0', 10)
+        return wb - wa
+      })
+
+      for (const key of keys) {
+        const rows = grouped[key]
+        const [, game_type, label] = key.split('__')
+        const titleText = `${game_type === '8ball' ? '8-ball' : '9-ball'} | ${label}`
+        const icon = game_type === '8ball' ? ICON_8BALL : ICON_9BALL
+
+        const wrapper = document.createElement('div')
+        wrapper.className = 'table-wrapper'
+        wrapper.innerHTML = `
+          <div class="section-title">
+            <img src="${icon}" width="24" height="24" alt="${game_type}" />
+            <strong>${titleText}</strong>
+            <span class="pill">${currentSeason}</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Match No.</th>
+                <th>Player</th>
+                <th>Played Like SL</th>
+                <th>${game_type === '8ball' ? 'Offensive Innings Per Rack' : 'Points Per Inning'}</th>
+                <th>Match Points</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        `
+
+        const tbody = wrapper.querySelector('tbody')
+        for (const m of rows) {
+          const metric = m.metric_value
+          const sl = getSL(metric, game_type === '9ball' ? slByPPI : slByInningsPerRack)
+          const tr = document.createElement('tr')
+          tr.className = 'link-row'
+          if (m.detail_link) tr.dataset.href = m.detail_link
+          tr.innerHTML = `
+            <td>${m.match_no ?? '-'}</td>
+            <td>${m.player ?? '-'}</td>
+            <td>${sl ?? '-'}</td>
+            <td>${(typeof metric === 'number' && !Number.isNaN(metric)) ? metric.toFixed(2) : '-'}</td>
+            <td>${m.match_points ?? '-'}</td>
+          `
+          tr.addEventListener('click', () => {
+            if (m.detail_link) window.location.href = m.detail_link
+          })
+          tbody.appendChild(tr)
+        }
+
+        matchesContainer.appendChild(wrapper)
+      }
+    }
+
+    function renderSummaries(matches) {
+      const s8 = document.querySelector('#summary-8ball tbody')
+      const s9 = document.querySelector('#summary-9ball tbody')
+
+      // Build preferred ordering, then include any others alphabetically
+      const preferredOrder = ["Tom", "Rob", "Alexis", "Linzay", "Steve", "Peter", "David", "Mike"]
+      const names = Array.from(new Set(matches.map(m => m.player).filter(Boolean)))
+      const ordered = [
+        ...preferredOrder.filter(n => names.includes(n)),
+        ...names.filter(n => !preferredOrder.includes(n)).sort((a,b) => a.localeCompare(b))
+      ]
+
+      // Accumulate stats per mode
+      const sum = { '8ball': {}, '9ball': {} }
+      for (const name of ordered) {
+        sum['8ball'][name] = { totalSL: 0, totalMetric: 0, totalPts: 0, count: 0 }
+        sum['9ball'][name] = { totalSL: 0, totalMetric: 0, totalPts: 0, count: 0 }
+      }
+
+      for (const m of matches) {
+        const mode = m.game_type === '9ball' ? '9ball' : '8ball'
+        const metric = m.metric_value
+        const sl = getSL(metric, mode === '9ball' ? slByPPI : slByInningsPerRack)
+        const entry = sum[mode][m.player]
+        if (!entry) continue
+        if (sl !== null) {
+          entry.totalSL += sl
+          entry.totalMetric += (typeof metric === 'number' ? metric : 0)
+          entry.totalPts += (typeof m.match_points === 'number' ? m.match_points : 0)
+          entry.count++
+        }
+      }
+
+      for (const name of ordered) {
+        // 8-ball
+        {
+          const d = sum['8ball'][name]
+          const tr = document.createElement('tr')
+          if (d.count > 0) {
+            tr.innerHTML = `<td>${name}</td><td>${(d.totalSL/d.count).toFixed(2)}</td><td>${(d.totalMetric/d.count).toFixed(2)}</td><td>${d.totalPts}</td>`
+          } else {
+            tr.innerHTML = `<td>${name}</td><td>-</td><td>-</td><td>-</td>`
+          }
+          s8.appendChild(tr)
+        }
+        // 9-ball
+        {
+          const d = sum['9ball'][name]
+          const tr = document.createElement('tr')
+          if (d.count > 0) {
+            tr.innerHTML = `<td>${name}</td><td>${(d.totalSL/d.count).toFixed(2)}</td><td>${(d.totalMetric/d.count).toFixed(2)}</td><td>${d.totalPts}</td>`
+          } else {
+            tr.innerHTML = `<td>${name}</td><td>-</td><td>-</td><td>-</td>`
+          }
+          s9.appendChild(tr)
+        }
+      }
+    }
+
+    // Boot
+    (async function start() {
+      await initSeasons()
+      await refreshAll()
+    })()
+  </script>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <img src="images/8ball-icon.png" alt="8-ball" width="24" height="24" />
+      <h1>Team Stats by Season</h1>
+    </div>
+    <div class="season-picker">
+      <label for="season-select">Season:</label>
+      <select id="season-select"></select>
+    </div>
+  </header>
+
+  <div class="info">Tip: you can deep-link seasons like <code>?season=2025fall</code>.</div>
+
+  <div class="table-wrapper">
+    <div class="section-title"><img src="images/8ball-icon.png" width="24" height="24" alt="8-ball" /> <strong>8-ball Summary</strong></div>
+    <table id="summary-8ball"></table>
+  </div>
+
+  <div class="table-wrapper">
+    <div class="section-title"><img src="images/9ball-icon.png" width="24" height="24" alt="9-ball" /> <strong>9-ball Summary</strong></div>
+    <table id="summary-9ball"></table>
+  </div>
+
+  <div id="loading" class="loading"></div>
+  <div id="error" class="error"></div>
+
+  <div id="matches-container"></div>
+</body>
+</html>
