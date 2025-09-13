@@ -51,17 +51,16 @@
     // ==========================
     // 1) Supabase CONFIG
     // ==========================
-    // TODO: Replace with your Supabase project values
     const supabaseUrl = 'https://jvaermwwixtyczilpuab.supabase.co'
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2YWVybXd3aXh0eWN6aWxwdWFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3NDExODksImV4cCI6MjA3MzMxNzE4OX0._sgcVUIosTXG9guTaY-EioNgFrvb_dt_D6Wog9Yih6o'
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Fallback seasons to show if we can't discover them from DB
+    // Fallback seasons
     const FALLBACK_SEASONS = ['2025spring', '2025summer', '2025fall']
 
-    // Icons — rename these files in your /images folder to match
-    const ICON_8BALL = 'images/8-ball icon.png' // or 'images/8-ball icon.png'
-    const ICON_9BALL = 'images/9-ball icon.png' // or 'images/9-ball icon.png'
+    // Icons
+    const ICON_8BALL = 'images/8-ball icon.png'
+    const ICON_9BALL = 'images/9-ball icon.png'
 
     // ==========================
     // 2) Skill Level Mappings
@@ -126,7 +125,6 @@
     })
 
     async function initSeasons() {
-      // Try to discover seasons from DB, fall back if needed
       try {
         const { data, error } = await supabase
           .from('matches')
@@ -144,8 +142,7 @@
         }
         if (!list.includes(currentSeason)) currentSeason = list[0]
         seasonSelect.value = currentSeason
-      } catch (e) {
-        // fallback
+      } catch {
         seasonSelect.innerHTML = ''
         for (const s of FALLBACK_SEASONS) {
           const opt = document.createElement('option')
@@ -188,7 +185,6 @@
       const s9 = document.getElementById('summary-9ball')
       s8.innerHTML = ''
       s9.innerHTML = ''
-      // Recreate headers
       s8.appendChild(htmlToElement(`<thead><tr>
         <th>Player</th><th>Avg Played Like SL</th><th>Avg Offensive Innings Per Rack</th><th>Total Match Points</th>
       </tr></thead><tbody></tbody>`))
@@ -204,10 +200,9 @@
     }
 
     // ==========================
-    // 5) Rendering Functions (with video icon column)
+    // 5) Rendering Functions (with Played Like SL column)
     // ==========================
     function renderWeeklyTables(matches) {
-      // Group by week + game_type + label
       const grouped = {}
       for (const m of matches) {
         const key = `${m.week}__${m.game_type}__${m.label}`
@@ -215,7 +210,6 @@
         grouped[key].push(m)
       }
 
-      // Keep descending by week
       const keys = Object.keys(grouped).sort((a,b) => {
         const wa = parseInt(a.split('__')[0] || '0', 10)
         const wb = parseInt(b.split('__')[0] || '0', 10)
@@ -242,6 +236,7 @@
                 <th>Match No.</th>
                 <th class="video-col"></th>
                 <th>Player</th>
+                <th>Played Like SL</th>
                 <th>${game_type === '8ball' ? 'Offensive Innings Per Rack' : 'Points Per Inning'}</th>
                 <th>Match Points</th>
               </tr>
@@ -259,7 +254,6 @@
           tr.className = 'link-row'
           if (m.detail_link) tr.dataset.href = m.detail_link
 
-          // Build cells
           const tdMatch = document.createElement('td')
           tdMatch.textContent = (m.match_no ?? '-')
 
@@ -278,14 +272,13 @@
               </svg>`
             a.addEventListener('click', (e) => { e.stopPropagation() })
             tdVideo.appendChild(a)
-          } else {
-            tdVideo.innerHTML = ''
           }
 
           const tdPlayer = document.createElement('td')
           tdPlayer.textContent = (m.player ?? '-')
-          // Played Like SL is shown in player cell title attribute for quick peek
-          if (sl !== null) tdPlayer.title = `Played Like SL: ${sl}`
+
+          const tdSL = document.createElement('td')
+          tdSL.textContent = (sl !== null ? sl : '-')
 
           const tdMetric = document.createElement('td')
           tdMetric.textContent = (typeof metric === 'number' && !Number.isNaN(metric)) ? metric.toFixed(2) : '-'
@@ -296,6 +289,7 @@
           tr.appendChild(tdMatch)
           tr.appendChild(tdVideo)
           tr.appendChild(tdPlayer)
+          tr.appendChild(tdSL)
           tr.appendChild(tdMetric)
           tr.appendChild(tdPts)
 
@@ -313,7 +307,6 @@
       const s8 = document.querySelector('#summary-8ball tbody')
       const s9 = document.querySelector('#summary-9ball tbody')
 
-      // Build preferred ordering, then include any others alphabetically
       const preferredOrder = ["Tom", "Rob", "Alexis", "Linzay", "Steve", "Peter", "David", "Mike"]
       const names = Array.from(new Set(matches.map(m => m.player).filter(Boolean)))
       const ordered = [
@@ -321,7 +314,6 @@
         ...names.filter(n => !preferredOrder.includes(n)).sort((a,b) => a.localeCompare(b))
       ]
 
-      // Accumulate stats per mode
       const sum = { '8ball': {}, '9ball': {} }
       for (const name of ordered) {
         sum['8ball'][name] = { totalSL: 0, totalMetric: 0, totalPts: 0, count: 0 }
@@ -343,8 +335,7 @@
       }
 
       for (const name of ordered) {
-        // 8-ball
-        {
+        { // 8-ball
           const d = sum['8ball'][name]
           const tr = document.createElement('tr')
           if (d.count > 0) {
@@ -354,8 +345,7 @@
           }
           s8.appendChild(tr)
         }
-        // 9-ball
-        {
+        { // 9-ball
           const d = sum['9ball'][name]
           const tr = document.createElement('tr')
           if (d.count > 0) {
@@ -368,7 +358,6 @@
       }
     }
 
-    // Boot
     (async function start() {
       await initSeasons()
       await refreshAll()
