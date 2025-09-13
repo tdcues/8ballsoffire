@@ -36,6 +36,13 @@
     .loading { padding: 10px 0; color: var(--muted); font-size: 14px; }
     .error { color: #a40000; padding: 10px 0; font-size: 14px; }
     .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef6ff; color: #09407d; font-size: 12px; border: 1px solid #cfe3ff; }
+
+    /* Video column styles */
+    .video-col { width: 28px; padding-left: 0; padding-right: 6px; text-align: right; }
+    .video-link { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; text-decoration: none; }
+    .video-link svg { display: block; }
+    .video-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+    .video-link:hover { opacity: 0.9; }
   </style>
 
   <script type="module">
@@ -45,8 +52,8 @@
     // 1) Supabase CONFIG
     // ==========================
     // TODO: Replace with your Supabase project values
-    const supabaseUrl = 'https://jvaermwwixtyczilpuab.supabase.co'
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2YWVybXd3aXh0eWN6aWxwdWFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3NDExODksImV4cCI6MjA3MzMxNzE4OX0._sgcVUIosTXG9guTaY-EioNgFrvb_dt_D6Wog9Yih6o'
+    const supabaseUrl = 'https://YOURPROJECT.supabase.co'
+    const supabaseKey = 'YOUR-ANON-PUBLIC-KEY'
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     // Fallback seasons to show if we can't discover them from DB
@@ -197,7 +204,7 @@
     }
 
     // ==========================
-    // 5) Rendering Functions
+    // 5) Rendering Functions (with video icon column)
     // ==========================
     function renderWeeklyTables(matches) {
       // Group by week + game_type + label
@@ -233,8 +240,8 @@
             <thead>
               <tr>
                 <th>Match No.</th>
+                <th class="video-col"></th>
                 <th>Player</th>
-                <th>Played Like SL</th>
                 <th>${game_type === '8ball' ? 'Offensive Innings Per Rack' : 'Points Per Inning'}</th>
                 <th>Match Points</th>
               </tr>
@@ -247,16 +254,51 @@
         for (const m of rows) {
           const metric = m.metric_value
           const sl = getSL(metric, game_type === '9ball' ? slByPPI : slByInningsPerRack)
+
           const tr = document.createElement('tr')
           tr.className = 'link-row'
           if (m.detail_link) tr.dataset.href = m.detail_link
-          tr.innerHTML = `
-            <td>${m.match_no ?? '-'}</td>
-            <td>${m.player ?? '-'}</td>
-            <td>${sl ?? '-'}</td>
-            <td>${(typeof metric === 'number' && !Number.isNaN(metric)) ? metric.toFixed(2) : '-'}</td>
-            <td>${m.match_points ?? '-'}</td>
-          `
+
+          // Build cells
+          const tdMatch = document.createElement('td')
+          tdMatch.textContent = (m.match_no ?? '-')
+
+          const tdVideo = document.createElement('td')
+          tdVideo.className = 'video-col'
+          if (m.youtube_link) {
+            const a = document.createElement('a')
+            a.href = m.youtube_link
+            a.target = '_blank'
+            a.rel = 'noopener noreferrer'
+            a.className = 'video-link'
+            a.setAttribute('aria-label', 'Watch video')
+            a.innerHTML = `
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M4 6h10a2 2 0 0 1 2 2v1.5l4-2v9l-4-2V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path>
+              </svg>`
+            a.addEventListener('click', (e) => { e.stopPropagation() })
+            tdVideo.appendChild(a)
+          } else {
+            tdVideo.innerHTML = ''
+          }
+
+          const tdPlayer = document.createElement('td')
+          tdPlayer.textContent = (m.player ?? '-')
+          // Played Like SL is shown in player cell title attribute for quick peek
+          if (sl !== null) tdPlayer.title = `Played Like SL: ${sl}`
+
+          const tdMetric = document.createElement('td')
+          tdMetric.textContent = (typeof metric === 'number' && !Number.isNaN(metric)) ? metric.toFixed(2) : '-'
+
+          const tdPts = document.createElement('td')
+          tdPts.textContent = (m.match_points ?? '-')
+
+          tr.appendChild(tdMatch)
+          tr.appendChild(tdVideo)
+          tr.appendChild(tdPlayer)
+          tr.appendChild(tdMetric)
+          tr.appendChild(tdPts)
+
           tr.addEventListener('click', () => {
             if (m.detail_link) window.location.href = m.detail_link
           })
@@ -345,7 +387,7 @@
     </div>
   </header>
 
-  <!-- <div class="info">Tip: you can deep-link seasons like <code>?season=2025fall</code>.</div> -->
+  <div class="info">Tip: you can deep-link seasons like <code>?season=2025fall</code>.</div>
 
   <div class="table-wrapper">
     <div class="section-title"><img src="images/8-ball icon.png" width="24" height="24" alt="8-ball" /> <strong>8-ball Summary</strong></div>
