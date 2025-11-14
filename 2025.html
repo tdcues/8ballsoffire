@@ -16,33 +16,154 @@
       --accent: #0b6bcb;
     }
     * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 16px; }
-    header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    .title { display: flex; align-items: center; gap: 10px; }
-    .title h1 { font-size: 22px; margin: 0; }
-    .season-picker { display: flex; align-items: center; gap: 8px; }
-    select { padding: 6px 10px; font-size: 14px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .title h1 {
+      font-size: 22px;
+      margin: 0;
+    }
+    .season-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    select {
+      padding: 6px 10px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
 
-    .info { font-size: 12px; color: var(--muted); }
-    .section-title { margin: 18px 0 8px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
-    .section-title img { vertical-align: middle; }
+    .section-title {
+      margin: 18px 0 8px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title img {
+      vertical-align: middle;
+    }
 
-    .table-wrapper { overflow-x: auto; max-width: 100%; margin-bottom: 28px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border-bottom: 1px solid var(--border); padding: 8px 12px; text-align: left; white-space: nowrap; }
-    thead th { background: var(--thead); font-weight: 600; }
-    tr.link-row:hover { background: var(--hover); cursor: pointer; }
+    .table-wrapper {
+      overflow-x: auto;
+      max-width: 100%;
+      margin-bottom: 28px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    thead th {
+      background: var(--thead);
+      font-weight: 600;
+    }
+    tr.link-row:hover {
+      background: var(--hover);
+      cursor: pointer;
+    }
 
-    .loading { padding: 10px 0; color: var(--muted); font-size: 14px; }
-    .error { color: #a40000; padding: 10px 0; font-size: 14px; }
-    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef6ff; color: #09407d; font-size: 12px; border: 1px solid #cfe3ff; }
+    .loading {
+      padding: 10px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .error {
+      color: #a40000;
+      padding: 10px 0;
+      font-size: 14px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef6ff;
+      color: #09407d;
+      font-size: 12px;
+      border: 1px solid #cfe3ff;
+    }
 
     /* Video column styles */
-    .video-col { width: 28px; padding-left: 0; padding-right: 6px; text-align: right; }
-    .video-link { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; text-decoration: none; }
-    .video-link svg { display: block; }
-    .video-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
-    .video-link:hover { opacity: 0.9; }
+    .video-col {
+      width: 28px;
+      padding-left: 0;
+      padding-right: 6px;
+      text-align: right;
+    }
+    .video-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      text-decoration: none;
+    }
+    .video-link svg {
+      display: block;
+    }
+    .video-link:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    .video-link:hover {
+      opacity: 0.9;
+    }
+
+    /* Win trophy column */
+    .win-col {
+      width: 24px;
+      padding-left: 0;
+      padding-right: 0;
+      text-align: center;
+    }
+    .win-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Sparkline for Defense Trend in summary tables */
+    .sparkline {
+      width: 70px;
+      height: 20px;
+      display: block;
+    }
+    .sparkline polyline {
+      stroke: var(--accent);
+      fill: none;
+    }
   </style>
 
   <script type="module">
@@ -186,10 +307,20 @@
       s8.innerHTML = ''
       s9.innerHTML = ''
       s8.appendChild(htmlToElement(`<thead><tr>
-        <th>Player</th><th>Avg Played Like SL</th><th>Avg Offensive Innings Per Rack</th><th>Total Match Points</th>
+        <th>Player</th>
+        <th>Avg Played Like SL</th>
+        <th>Avg Offensive Innings Per Rack</th>
+        <th>Avg Defense</th>
+        <th>Defense Trend</th>
+        <th>Total Match Points</th>
       </tr></thead><tbody></tbody>`))
       s9.appendChild(htmlToElement(`<thead><tr>
-        <th>Player</th><th>Avg Played Like SL</th><th>Avg Points Per Inning</th><th>Total Match Points</th>
+        <th>Player</th>
+        <th>Avg Played Like SL</th>
+        <th>Avg Points Per Inning</th>
+        <th>Avg Defense</th>
+        <th>Defense Trend</th>
+        <th>Total Match Points</th>
       </tr></thead><tbody></tbody>`))
     }
 
@@ -199,8 +330,42 @@
       return template.content
     }
 
+    // Tiny sparkline (inline SVG) for Defense Trend
+    function makeSparkline(points, width = 60, height = 20) {
+      if (!points || !points.length) return ''
+      const vals = points.map(p => p.value).filter(v => typeof v === 'number' && !Number.isNaN(v))
+      if (!vals.length) return ''
+      const max = Math.max(...vals)
+      if (max <= 0) return ''
+
+      const stepX = points.length === 1 ? 0 : width / (points.length - 1)
+      const coords = points.map((p, i) => {
+        const v = typeof p.value === 'number' ? p.value : 0
+        const x = i * stepX
+        const y = height - (v / max) * height
+        return `${x.toFixed(1)},${y.toFixed(1)}`
+      }).join(' ')
+
+      return `
+        <svg class="sparkline" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+          <polyline points="${coords}" stroke-width="1.5" />
+        </svg>
+      `
+    }
+
+    // Determine if a match is a win (for trophy icon)
+    function isWin(gameType, matchPoints) {
+      if (typeof matchPoints !== 'number' || Number.isNaN(matchPoints)) return false
+      if (gameType === '8ball') {
+        return matchPoints === 2 || matchPoints === 3
+      } else {
+        // 9-ball
+        return matchPoints >= 13 && matchPoints <= 20
+      }
+    }
+
     // ==========================
-    // 5) Rendering Functions (Defense + Played Like SL)
+    // 5) Rendering Functions (Defense + Played Like SL + Win Icon)
     // ==========================
     function renderWeeklyTables(matches) {
       const grouped = {}
@@ -234,6 +399,7 @@
             <thead>
               <tr>
                 <th>Match No.</th>
+                <th class="win-col"></th>
                 <th class="video-col"></th>
                 <th>Player</th>
                 <th>Defense</th>
@@ -250,6 +416,7 @@
         for (const m of rows) {
           const metric = m.metric_value
           const sl = getSL(metric, game_type === '9ball' ? slByPPI : slByInningsPerRack)
+          const won = isWin(game_type, m.match_points)
 
           const tr = document.createElement('tr')
           tr.className = 'link-row'
@@ -257,6 +424,20 @@
 
           const tdMatch = document.createElement('td')
           tdMatch.textContent = (m.match_no ?? '-')
+
+          const tdWin = document.createElement('td')
+          tdWin.className = 'win-col'
+          if (won) {
+            tdWin.innerHTML = `
+              <span class="win-icon" title="Match won">
+                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 3h10v2h2a1 1 0 0 1 1 1v2a5 5 0 0 1-4 4.9A5.002 5.002 0 0 1 13 16v2h3a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h3v-2a5.002 5.002 0 0 1-3-3.1A5 5 0 0 1 5 8V6a1 1 0 0 1 1-1h1V3zm2 4H7v1a3 3 0 0 0 2.356 2.94A4.98 4.98 0 0 1 9 10V7zm8 0h-2v3c0 .34-.03.673-.09 1A3 3 0 0 0 19 8V7z"/>
+                </svg>
+              </span>
+            `
+          } else {
+            tdWin.textContent = ''
+          }
 
           const tdVideo = document.createElement('td')
           tdVideo.className = 'video-col'
@@ -279,20 +460,23 @@
           tdPlayer.textContent = (m.player ?? '-')
 
           const tdDefense = document.createElement('td')
-          tdDefense.textContent = (typeof m.defense_attempt === 'number' && !Number.isNaN(m.defense_attempt))
-            ? m.defense_attempt
-            : '-'
+          tdDefense.textContent =
+            (typeof m.defense_attempt === 'number' && !Number.isNaN(m.defense_attempt))
+              ? m.defense_attempt
+              : '-'
 
           const tdSL = document.createElement('td')
           tdSL.textContent = (sl !== null ? sl : '-')
 
           const tdMetric = document.createElement('td')
-          tdMetric.textContent = (typeof metric === 'number' && !Number.isNaN(metric)) ? metric.toFixed(2) : '-'
+          tdMetric.textContent =
+            (typeof metric === 'number' && !Number.isNaN(metric)) ? metric.toFixed(2) : '-'
 
           const tdPts = document.createElement('td')
           tdPts.textContent = (m.match_points ?? '-')
 
           tr.appendChild(tdMatch)
+          tr.appendChild(tdWin)
           tr.appendChild(tdVideo)
           tr.appendChild(tdPlayer)
           tr.appendChild(tdDefense)
@@ -311,8 +495,8 @@
     }
 
     function renderSummaries(matches) {
-      const s8 = document.querySelector('#summary-8ball tbody')
-      const s9 = document.querySelector('#summary-9ball tbody')
+      const s8Body = document.querySelector('#summary-8ball tbody')
+      const s9Body = document.querySelector('#summary-9ball tbody')
 
       const preferredOrder = ["Tom", "Rob", "Alexis", "Linzay", "Steve", "Peter", "David", "Mike"]
       const names = Array.from(new Set(matches.map(m => m.player).filter(Boolean)))
@@ -321,10 +505,16 @@
         ...names.filter(n => !preferredOrder.includes(n)).sort((a,b) => a.localeCompare(b))
       ]
 
+      // Aggregates for avg SL, metric, points, defense
       const sum = { '8ball': {}, '9ball': {} }
+      // Defense time series for sparkline: { mode: { name: [ { week, value } ] } }
+      const defenseSeries = { '8ball': {}, '9ball': {} }
+
       for (const name of ordered) {
-        sum['8ball'][name] = { totalSL: 0, totalMetric: 0, totalPts: 0, count: 0 }
-        sum['9ball'][name] = { totalSL: 0, totalMetric: 0, totalPts: 0, count: 0 }
+        sum['8ball'][name] = { totalSL: 0, totalMetric: 0, totalPts: 0, totalDefense: 0, count: 0, defenseCount: 0 }
+        sum['9ball'][name] = { totalSL: 0, totalMetric: 0, totalPts: 0, totalDefense: 0, count: 0, defenseCount: 0 }
+        defenseSeries['8ball'][name] = []
+        defenseSeries['9ball'][name] = []
       }
 
       for (const m of matches) {
@@ -333,34 +523,72 @@
         const sl = getSL(metric, mode === '9ball' ? slByPPI : slByInningsPerRack)
         const entry = sum[mode][m.player]
         if (!entry) continue
+
         if (sl !== null) {
           entry.totalSL += sl
           entry.totalMetric += (typeof metric === 'number' ? metric : 0)
           entry.totalPts += (typeof m.match_points === 'number' ? m.match_points : 0)
           entry.count++
         }
+
+        if (typeof m.defense_attempt === 'number' && !Number.isNaN(m.defense_attempt)) {
+          entry.totalDefense += m.defense_attempt
+          entry.defenseCount++
+          defenseSeries[mode][m.player].push({
+            week: m.week,
+            value: m.defense_attempt
+          })
+        }
+      }
+
+      // Sort defense series by week (ascending) for nice left-to-right trend
+      for (const mode of ['8ball', '9ball']) {
+        for (const name of ordered) {
+          defenseSeries[mode][name].sort((a,b) => (a.week ?? 0) - (b.week ?? 0))
+        }
       }
 
       for (const name of ordered) {
-        { // 8-ball
+        // 8-ball row
+        {
           const d = sum['8ball'][name]
           const tr = document.createElement('tr')
-          if (d.count > 0) {
-            tr.innerHTML = `<td>${name}</td><td>${(d.totalSL/d.count).toFixed(2)}</td><td>${(d.totalMetric/d.count).toFixed(2)}</td><td>${d.totalPts}</td>`
-          } else {
-            tr.innerHTML = `<td>${name}</td><td>-</td><td>-</td><td>-</td>`
-          }
-          s8.appendChild(tr)
+
+          const avgSL = d.count > 0 ? (d.totalSL/d.count).toFixed(2) : '-'
+          const avgMetric = d.count > 0 ? (d.totalMetric/d.count).toFixed(2) : '-'
+          const avgDefense = d.defenseCount > 0 ? (d.totalDefense/d.defenseCount).toFixed(2) : '-'
+          const defenseSpark = makeSparkline(defenseSeries['8ball'][name])
+
+          tr.innerHTML = `
+            <td>${name}</td>
+            <td>${avgSL}</td>
+            <td>${avgMetric}</td>
+            <td>${avgDefense}</td>
+            <td>${defenseSpark}</td>
+            <td>${d.count > 0 ? d.totalPts : '-'}</td>
+          `
+          s8Body.appendChild(tr)
         }
-        { // 9-ball
+
+        // 9-ball row
+        {
           const d = sum['9ball'][name]
           const tr = document.createElement('tr')
-          if (d.count > 0) {
-            tr.innerHTML = `<td>${name}</td><td>${(d.totalSL/d.count).toFixed(2)}</td><td>${(d.totalMetric/d.count).toFixed(2)}</td><td>${d.totalPts}</td>`
-          } else {
-            tr.innerHTML = `<td>${name}</td><td>-</td><td>-</td><td>-</td>`
-          }
-          s9.appendChild(tr)
+
+          const avgSL = d.count > 0 ? (d.totalSL/d.count).toFixed(2) : '-'
+          const avgMetric = d.count > 0 ? (d.totalMetric/d.count).toFixed(2) : '-'
+          const avgDefense = d.defenseCount > 0 ? (d.totalDefense/d.defenseCount).toFixed(2) : '-'
+          const defenseSpark = makeSparkline(defenseSeries['9ball'][name])
+
+          tr.innerHTML = `
+            <td>${name}</td>
+            <td>${avgSL}</td>
+            <td>${avgMetric}</td>
+            <td>${avgDefense}</td>
+            <td>${defenseSpark}</td>
+            <td>${d.count > 0 ? d.totalPts : '-'}</td>
+          `
+          s9Body.appendChild(tr)
         }
       }
     }
@@ -384,12 +612,18 @@
   </header>
 
   <div class="table-wrapper">
-    <div class="section-title"><img src="images/8-ball icon.png" width="24" height="24" alt="8-ball" /> <strong>8-ball Summary</strong></div>
+    <div class="section-title">
+      <img src="images/8-ball icon.png" width="24" height="24" alt="8-ball" />
+      <strong>8-ball Summary</strong>
+    </div>
     <table id="summary-8ball"></table>
   </div>
 
   <div class="table-wrapper">
-    <div class="section-title"><img src="images/9-ball icon.png" width="24" height="24" alt="9-ball" /> <strong>9-ball Summary</strong></div>
+    <div class="section-title">
+      <img src="images/9-ball icon.png" width="24" height="24" alt="9-ball" />
+      <strong>9-ball Summary</strong>
+    </div>
     <table id="summary-9ball"></table>
   </div>
 
