@@ -154,6 +154,17 @@
       height: 18px;
     }
 
+    /* Hill icon inside Match No. */
+    .hill-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
     /* Sparkline for Defense Trend in summary tables */
     .sparkline {
       width: 70px;
@@ -365,7 +376,7 @@
     }
 
     // ==========================
-    // 5) Rendering Functions (Defense + Played Like SL + Win Icon)
+    // 5) Rendering Functions (Defense + Played Like SL + Win + Hill icon)
     // ==========================
     function renderWeeklyTables(matches) {
       const grouped = {}
@@ -418,12 +429,27 @@
           const sl = getSL(metric, game_type === '9ball' ? slByPPI : slByInningsPerRack)
           const won = isWin(game_type, m.match_points)
 
+          const isEightBall = game_type === '8ball'
+          const isHill = isEightBall && typeof m.match_points === 'number' && m.match_points === 1
+
           const tr = document.createElement('tr')
           tr.className = 'link-row'
           if (m.detail_link) tr.dataset.href = m.detail_link
 
           const tdMatch = document.createElement('td')
           tdMatch.textContent = (m.match_no ?? '-')
+          // Add hill icon for 8-ball hill matches (match_points = 1)
+          if (isHill) {
+            const hillSpan = document.createElement('span')
+            hillSpan.className = 'hill-icon'
+            hillSpan.title = 'On the hill (1 point in 8-ball)'
+            hillSpan.innerHTML = `
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 19L9.5 11.5L14 16.5L21 7" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            `
+            tdMatch.appendChild(hillSpan)
+          }
 
           const tdWin = document.createElement('td')
           tdWin.className = 'win-col'
