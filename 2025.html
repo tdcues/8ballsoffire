@@ -511,104 +511,135 @@
       }
     }
 
-    function renderSummaries(matches) {
-      const s8Body = document.querySelector('#summary-8ball tbody')
-      const s9Body = document.querySelector('#summary-9ball tbody')
+function renderSummaries(matches) {
+  const s8Body = document.querySelector('#summary-8ball tbody')
+  const s9Body = document.querySelector('#summary-9ball tbody')
 
-      const preferredOrder = ["Tom", "Rob", "Alexis", "Linzay", "Steve", "Peter", "David", "Mike"]
-      const names = Array.from(new Set(matches.map(m => m.player).filter(Boolean)))
-      const ordered = [
-        ...preferredOrder.filter(n => names.includes(n)),
-        ...names.filter(n => !preferredOrder.includes(n)).sort((a,b) => a.localeCompare(b))
-      ]
+  const preferredOrder = ["Tom", "Rob", "Alexis", "Linzay", "Steve", "Peter", "David", "Mike"]
+  const names = Array.from(new Set(matches.map(m => m.player).filter(Boolean)))
 
-      // Aggregates for avg SL, metric, points, defense
-      const sum = { '8ball': {}, '9ball': {} }
-      // Defense time series for sparkline: { mode: { name: [ { week, value } ] } }
-      const defenseSeries = { '8ball': {}, '9ball': {} }
+  const ordered = [
+    ...preferredOrder.filter(n => names.includes(n)),
+    ...names.filter(n => !preferredOrder.includes(n)).sort((a,b) => a.localeCompare(b))
+  ]
 
-      for (const name of ordered) {
-        sum['8ball'][name] = { totalSL: 0, totalMetric: 0, totalPts: 0, totalDefense: 0, count: 0, defenseCount: 0 }
-        sum['9ball'][name] = { totalSL: 0, totalMetric: 0, totalPts: 0, totalDefense: 0, count: 0, defenseCount: 0 }
-        defenseSeries['8ball'][name] = []
-        defenseSeries['9ball'][name] = []
-      }
+  const sum = { '8ball': {}, '9ball': {} }
+  const defenseSeries = { '8ball': {}, '9ball': {} }
 
-      for (const m of matches) {
-        const mode = m.game_type === '9ball' ? '9ball' : '8ball'
-        const metric = m.metric_value
-        const sl = getSL(metric, mode === '9ball' ? slByPPI : slByInningsPerRack)
-        const entry = sum[mode][m.player]
-        if (!entry) continue
-
-        if (sl !== null) {
-          entry.totalSL += sl
-          entry.totalMetric += (typeof metric === 'number' ? metric : 0)
-          entry.totalPts += (typeof m.match_points === 'number' ? m.match_points : 0)
-          entry.count++
-        }
-
-        if (typeof m.defense_attempt === 'number' && !Number.isNaN(m.defense_attempt)) {
-          entry.totalDefense += m.defense_attempt
-          entry.defenseCount++
-          defenseSeries[mode][m.player].push({
-            week: m.week,
-            value: m.defense_attempt
-          })
-        }
-      }
-
-      // Sort defense series by week (ascending) for nice left-to-right trend
-      for (const mode of ['8ball', '9ball']) {
-        for (const name of ordered) {
-          defenseSeries[mode][name].sort((a,b) => (a.week ?? 0) - (b.week ?? 0))
-        }
-      }
-
-      for (const name of ordered) {
-        // 8-ball row
-        {
-          const d = sum['8ball'][name]
-          const tr = document.createElement('tr')
-
-          const avgSL = d.count > 0 ? (d.totalSL/d.count).toFixed(2) : '-'
-          const avgMetric = d.count > 0 ? (d.totalMetric/d.count).toFixed(2) : '-'
-          const avgDefense = d.defenseCount > 0 ? (d.totalDefense/d.defenseCount).toFixed(2) : '-'
-          const defenseSpark = makeSparkline(defenseSeries['8ball'][name])
-
-          tr.innerHTML = `
-            <td>${name}</td>
-            <td>${avgSL}</td>
-            <td>${avgMetric}</td>
-            <td>${avgDefense}</td>
-            <td>${defenseSpark}</td>
-            <td>${d.count > 0 ? d.totalPts : '-'}</td>
-          `
-          s8Body.appendChild(tr)
-        }
-
-        // 9-ball row
-        {
-          const d = sum['9ball'][name]
-          const tr = document.createElement('tr')
-
-          const avgSL = d.count > 0 ? (d.totalSL/d.count).toFixed(2) : '-'
-          const avgMetric = d.count > 0 ? (d.totalMetric/d.count).toFixed(2) : '-'
-          const avgDefense = d.defenseCount > 0 ? (d.totalDefense/d.defenseCount).toFixed(2) : '-'
-          const defenseSpark = makeSparkline(defenseSeries['9ball'][name])
-
-          tr.innerHTML = `
-            <td>${name}</td>
-            <td>${avgSL}</td>
-            <td>${avgMetric}</td>
-            <td>${avgDefense}</td>
-            <td>${defenseSpark}</td>
-            <td>${d.count > 0 ? d.totalPts : '-'}</td>
-          `
-          s9Body.appendChild(tr)
-        }
-      }
+  for (const name of ordered) {
+    sum['8ball'][name] = {
+      totalSL: 0,
+      totalMetric: 0,
+      totalPts: 0,
+      totalDefense: 0,
+      slCount: 0,
+      metricCount: 0,
+      pointCount: 0,
+      defenseCount: 0
     }
+
+    sum['9ball'][name] = {
+      totalSL: 0,
+      totalMetric: 0,
+      totalPts: 0,
+      totalDefense: 0,
+      slCount: 0,
+      metricCount: 0,
+      pointCount: 0,
+      defenseCount: 0
+    }
+
+    defenseSeries['8ball'][name] = []
+    defenseSeries['9ball'][name] = []
+  }
+
+  for (const m of matches) {
+    const mode = m.game_type === '9ball' ? '9ball' : '8ball'
+    const entry = sum[mode][m.player]
+    if (!entry) continue
+
+    const metric = m.metric_value
+    const sl = getSL(metric, mode === '9ball' ? slByPPI : slByInningsPerRack)
+
+    // Count match points regardless of whether metric/SL exists
+    if (typeof m.match_points === 'number' && !Number.isNaN(m.match_points)) {
+      entry.totalPts += m.match_points
+      entry.pointCount++
+    }
+
+    // Count SL only when SL can be calculated
+    if (sl !== null) {
+      entry.totalSL += sl
+      entry.slCount++
+    }
+
+    // Count metric only when metric exists
+    if (typeof metric === 'number' && !Number.isNaN(metric)) {
+      entry.totalMetric += metric
+      entry.metricCount++
+    }
+
+    // Count defense independently
+    if (typeof m.defense_attempt === 'number' && !Number.isNaN(m.defense_attempt)) {
+      entry.totalDefense += m.defense_attempt
+      entry.defenseCount++
+      defenseSeries[mode][m.player].push({
+        week: m.week,
+        value: m.defense_attempt
+      })
+    }
+  }
+
+  for (const mode of ['8ball', '9ball']) {
+    for (const name of ordered) {
+      defenseSeries[mode][name].sort((a,b) => (a.week ?? 0) - (b.week ?? 0))
+    }
+  }
+
+  for (const name of ordered) {
+    {
+      const d = sum['8ball'][name]
+      const tr = document.createElement('tr')
+
+      const avgSL = d.slCount > 0 ? (d.totalSL / d.slCount).toFixed(2) : '-'
+      const avgMetric = d.metricCount > 0 ? (d.totalMetric / d.metricCount).toFixed(2) : '-'
+      const avgDefense = d.defenseCount > 0 ? (d.totalDefense / d.defenseCount).toFixed(2) : '-'
+      const defenseSpark = makeSparkline(defenseSeries['8ball'][name])
+      const totalPts = d.pointCount > 0 ? d.totalPts : '-'
+
+      tr.innerHTML = `
+        <td>${name}</td>
+        <td>${avgSL}</td>
+        <td>${avgMetric}</td>
+        <td>${avgDefense}</td>
+        <td>${defenseSpark}</td>
+        <td>${totalPts}</td>
+      `
+      s8Body.appendChild(tr)
+    }
+
+    {
+      const d = sum['9ball'][name]
+      const tr = document.createElement('tr')
+
+      const avgSL = d.slCount > 0 ? (d.totalSL / d.slCount).toFixed(2) : '-'
+      const avgMetric = d.metricCount > 0 ? (d.totalMetric / d.metricCount).toFixed(2) : '-'
+      const avgDefense = d.defenseCount > 0 ? (d.totalDefense / d.defenseCount).toFixed(2) : '-'
+      const defenseSpark = makeSparkline(defenseSeries['9ball'][name])
+      const totalPts = d.pointCount > 0 ? d.totalPts : '-'
+
+      tr.innerHTML = `
+        <td>${name}</td>
+        <td>${avgSL}</td>
+        <td>${avgMetric}</td>
+        <td>${avgDefense}</td>
+        <td>${defenseSpark}</td>
+        <td>${totalPts}</td>
+      `
+      s9Body.appendChild(tr)
+    }
+  }
+}
 
     (async function start() {
       await initSeasons()
